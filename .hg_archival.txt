@@ -1,0 +1,5 @@
+repo: e4a50ea0f07c11504108772a8588beb4db8be5d6
+node: 66c4bd7214e850ded84b467827149d8c7ae62e40
+branch: default
+latesttag: 3GPP R1-156621
+latesttagdistance: 8

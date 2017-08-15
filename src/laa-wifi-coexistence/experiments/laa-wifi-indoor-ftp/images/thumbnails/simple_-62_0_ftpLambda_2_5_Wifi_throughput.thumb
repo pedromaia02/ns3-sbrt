@@ -1,0 +1,15 @@
+<div class="plot">
+    <a class="thumbnail" href="../png/simple_-62_0_ftpLambda_2_5_Wifi_throughput.png">
+      <img src="simple_-62_0_ftpLambda_2_5_Wifi_throughput.png" alt="  CDF Vazão [Mbps] " width="200" height="150" />
+    </a>
+    <div class="resource">
+     eps: 
+    <a  href="../ps/simple_-62_0_ftpLambda_2_5_Wifi_throughput.eps">image</a>
+    <a  href="../scripts/simple_-62_0_ftpLambda_2_5_Wifi_throughput_eps.gnuplot">gnuplot script</a>
+    </div>
+    <div class="resource">
+     pstex: 
+    <a href="../pstex/simple_-62_0_ftpLambda_2_5_Wifi_throughput.ps">ps part</a>
+    <a href="../pstex/simple_-62_0_ftpLambda_2_5_Wifi_throughput.tex">tex part</a>
+    </div>
+</div>
