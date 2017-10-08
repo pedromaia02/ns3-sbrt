@@ -182,6 +182,11 @@ LteEnbPhy::GetTypeId (void)
                        DoubleValue (1),
                        MakeDoubleAccessor (&LteEnbPhy::DoSetAbsPatternDouble),
                        MakeDoubleChecker<double> ())
+
+      .AddTraceSource ("SetAbsBitSet",
+                       "New ABS Pattern Value",
+                       MakeTraceSourceAccessor (&LteEnbPhy::absBitSet),
+                       "ns3::LteEnbPhy::AbsTracedCallback")
 /////////////////////////////////////////////////////////////////////////////////
     .AddAttribute ("NoiseFigure",
                    "Loss (dB) in the Signal-to-Noise-Ratio due to "
@@ -1061,11 +1066,6 @@ LteEnbPhy::TransmitSubFrame (void)
 
   NS_ASSERT_MSG (m_nrSubFrames > 0 && m_nrSubFrames <= 10, "code assumes subframe in 1..10");
   uint32_t absIndex = (m_nrFrames % 4) * 10 + ((m_nrSubFrames - 1) % 10);
-
-  //std::cout << "Frame: " << m_nrFrames << std::endl;
-  //std::cout << "Subframe: " << m_nrSubFrames << std::endl;
-  //std::cout << "AbsIndex: " << absIndex << std::endl;
-
   uint32_t absIndex2 = (m_nrFrames * 10 + (m_nrSubFrames - 1)) % 40;
   bool isAlmostBlankSubframe = m_absPattern[absIndex];
 
@@ -1134,7 +1134,9 @@ LteEnbPhy::TransmitSubFrame (void)
 	  }
     }
 	/////////////////////////// MODIFIED ////////////////////////////////
-	if (absIndex == 39){absCycle(absIndex);}
+	if (absIndex == 39){
+		absCycle(absIndex);
+	}
 	////////////////////////////////////////////////////////////////////
 }
 

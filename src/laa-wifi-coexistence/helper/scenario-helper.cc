@@ -55,10 +55,10 @@ NS_LOG_COMPONENT_DEFINE ("ScenarioHelper");
 #include "BsQLearning.h"
 #include "BsQLearning.cpp"
 
-bool activated = true; //Turn on/off Q-Learning
-
+bool activated = false; //Turn on/off Q-Learning
 std::list<BsQLearning> bsQlearningList;
 std::list<uint32_t> apList;
+double start_Q_time = 2.5; // Start Q-Learning
 
 int GetNodeFromContext(std::string s){
 	int it = 0;
@@ -104,14 +104,87 @@ void TxApDataSent(std::string context, Ptr<const Packet> packet){
 void AbsCycle(std::string context, uint32_t newval){
 
 	int i_eNB = GetNodeFromContext(context);
-	for (std::list<BsQLearning>::iterator i = bsQlearningList.begin(); i != bsQlearningList.end(); i++){
-		if (i->GetNode() == i_eNB){
-			i->Run();
+	double current_time = Simulator::Now ().GetSeconds();
+	if (current_time > start_Q_time){
+		for (std::list<BsQLearning>::iterator i = bsQlearningList.begin(); i != bsQlearningList.end(); i++){
+			if (i->GetNode() == i_eNB){
+				i->Run();
+				i->ResetApTxData();
+				i->ResetEnbTxData();
+				//std:: cout << Simulator::Now().GetSeconds() << std::endl;
+			}
 		}
 	}
+
+	//Reset buffer.
+	for (std::list<BsQLearning>::iterator i = bsQlearningList.begin(); i != bsQlearningList.end(); i++){
+				if (i->GetNode() == i_eNB){
+					i->ResetApTxData();
+					i->ResetEnbTxData();
+				}
+			}
 }
 
 ///////////////////////////////////// /////////// /////////////////////////////////////
+
+void UdpRateChange(ApplicationContainer clientApps, double interval, uint32_t packetSize){
+
+	std::cout << "Setting New Data Rate at " << Simulator::Now().GetSeconds() << "s = " << packetSize*8/interval << std::endl;
+	Time udpInterval = Seconds (interval);
+
+
+	int node = 1;
+	//double newBase = packetSize * 8 / interval / 1000 / 1000;
+/*
+
+	//Check new base for LTE
+	for (std::list<BsQLearning>::iterator i = bsQlearningList.begin(); i != bsQlearningList.end(); i++){
+		if (i->GetNode() == node){
+			i->SetLteBaseTput(newBase);
+			i->StartMatrix();
+		}
+	}
+	//Check new base for Wi-Fi (Need to change class if there's more than one AP.)
+	for (std::list<uint32_t>::iterator i = apList.begin(); i != apList.end(); i++){
+		  if ((int)*i == node){
+			  //Then we set the buffer of all eNBs to be aware of Wi-Fi new base.
+			  for (std::list<BsQLearning>::iterator j = bsQlearningList.begin(); j != bsQlearningList.end(); j++){
+				  j->SetWifiBaseTput(newBase);
+				  j->StartMatrix();
+			  }
+		  }
+	  }
+
+*/
+
+	//RESET MATRIX
+
+	for (std::list<BsQLearning>::iterator i = bsQlearningList.begin(); i != bsQlearningList.end(); i++){
+		i->StartMatrix();
+	}
+
+
+
+	//Change Rate
+	clientApps.Get(node)->SetAttribute("Interval", TimeValue (udpInterval));
+}
+
+/*
+
+void LteReportInterference (std::string context, uint16_t celll_id, uint16_t rnti, double sinr){
+
+	//std::ofstream myfile;
+	//myfile.open ("sinr.txt", std::ios_base::app);
+	//myfile << sinr << std::endl;
+	//myfile.close();
+	int i_eNB = GetNodeFromContext(context);
+	std::cout << i_eNB << std::endl;
+	std::cout << sinr << std::endl;
+	std::cout << "----------------" << std::endl;
+}
+*/
+
+
 
 static const uint16_t VOICE_PORT = 16384; // a port sometimes used for RTP
 static const uint16_t UDP_SERVER_PORT = 9; // discard port
@@ -1032,7 +1105,7 @@ PrintFlowMonitorStats (Ptr<FlowMonitor> monitor, FlowMonitorHelper& flowmonHelpe
         {
           // Measure the duration of the flow from receiver's perspective
           double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
-          //rxDuration = duration;
+          rxDuration = duration;
           std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000  << " Mbps\n";
           std::cout << "  Mean delay:  " << 1000 * i->second.delaySum.GetSeconds () / i->second.rxPackets << " ms\n";
           std::cout << "  Mean jitter:  " << 1000 * i->second.jitterSum.GetSeconds () / i->second.rxPackets  << " ms\n";
@@ -1578,7 +1651,7 @@ SaveUdpFlowMonitorStats (std::string filename, std::string simulationParams, Ptr
           // Measure the duration of the flow from receiver's perspective
           double rxDuration = i->second.timeLastRxPacket.GetSeconds () - i->second.timeFirstTxPacket.GetSeconds ();
           // Mb/s
-          //rxDuration = duration;
+          rxDuration = duration;
           outFile << " " << i->second.rxBytes
                   // Mb/s
                   << " " << (i->second.rxBytes * 8.0 / rxDuration) / 1e6
@@ -2798,6 +2871,7 @@ ConfigureAndRunScenario (Config_e cellConfigA,
     }
   uint32_t nextClient = 0;
 
+  ApplicationContainer serverApps, clientApps;
   if (disableApps == false)
     {
       // If voice is enabled, we will try to enable voice on the first one
@@ -2831,7 +2905,7 @@ ConfigureAndRunScenario (Config_e cellConfigA,
 
       if (transport == UDP)
         {
-          ApplicationContainer serverApps, clientApps;
+          //ApplicationContainer serverApps, clientApps;
           serverApps.Add (ConfigureUdpServers (ueNodesA, serverStartTime, serverStopTime));
           clientApps.Add (ConfigureUdpClients (clientNodesA, ipUeA, clientStartTime, clientStopTime, udpInterval));
           serverApps.Add (ConfigureUdpServers (nonVoiceUeNodesB, serverStartTime, serverStopTime));
@@ -3080,6 +3154,19 @@ ConfigureAndRunScenario (Config_e cellConfigA,
 	  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxBegin", MakeCallback (&TxApDataSent));
 	  Config::Connect ("/NodeList/*/DeviceList/*/$ns3::LteNetDevice/$ns3::LteEnbNetDevice/LteEnbPhy/AbsCycle", MakeCallback (&AbsCycle));
   }
+
+  //Decrease Rate during simulation.
+  interval = interval*4;
+  Simulator::Schedule(Seconds(1), &UdpRateChange, clientApps, interval, packetSize);
+
+  //Increase Rate during simulation.
+  interval = interval/4;
+  Simulator::Schedule(Seconds(7), &UdpRateChange, clientApps, interval, packetSize);
+
+  //Decrease Again Rate during simulation.
+  interval = interval*2;
+  Simulator::Schedule(Seconds(14), &UdpRateChange, clientApps, interval, packetSize);
+
 
   Simulator::Run ();
   /*

@@ -286,12 +286,12 @@ static ns3::GlobalValue g_d2 ("d2",
 
 static ns3::GlobalValue g_duration ("duration",
                                     "Data transfer duration (seconds)",
-                                    ns3::DoubleValue (6),
+                                    ns3::DoubleValue (20),
                                     ns3::MakeDoubleChecker<double> ());
 
 static ns3::GlobalValue g_cellConfigA ("cellConfigA",
                                        "Laa, Lte, or Wifi",
-                                        ns3::EnumValue (LTE), //Let LTE in Cell A
+                                        ns3::EnumValue (LAA), //Let LTE in Cell A
                                         ns3::MakeEnumChecker (WIFI, "Wifi",
                                                               LTE, "Lte",
                                                               LAA, "Laa"));
@@ -304,7 +304,7 @@ static ns3::GlobalValue g_cellConfigB ("cellConfigB",
 
 static ns3::GlobalValue g_channelAccessManager ("ChannelAccessManager",
                                                 "Default, DutyCycle, Lbt",
-                                                ns3::EnumValue (Lbt),
+                                                ns3::EnumValue (LTE),
                                                 ns3::MakeEnumChecker (Default, "Default",
                                                                       DutyCycle, "DutyCycle",
                                                                       Lbt, "Lbt"));
@@ -340,11 +340,10 @@ static ns3::GlobalValue g_transport ("transport",
                                      ns3::MakeEnumChecker (FTP, "Ftp",
                                                            UDP, "Udp",
                                                            TCP, "Tcp"));
-                                                           
 
 static ns3::GlobalValue g_lteDutyCycle ("lteDutyCycle",
                                     "Duty cycle value to be used for LTE",
-                                    ns3::DoubleValue (1),
+                                    ns3::DoubleValue (0),
                                     ns3::MakeDoubleChecker<double> (0.0, 1.0));
 
 static ns3::GlobalValue g_generateRem ("generateRem",

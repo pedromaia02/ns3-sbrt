@@ -39,20 +39,25 @@ class BsQLearning
     ///////////////// LTE //////////////////////
     double LteTput;
     uint32_t LteTxData; // (BYTES)
+    double LteBaseTput;
     //////////////// WI-FI /////////////////////
     double WifiTput;
     uint32_t WifiTxData; // (BYTES)
+    double WifiBaseTput;
 
     int GetNode();
     void SetNode(int n);
+    void SetLteBaseTput(double x);
+    void SetWifiBaseTput(double x);
     void SetNs3Path(std::string s);
-    void LogTputStats(double Tput);
+    void LogTputStats(double Tput,std::string op);
     void StartMatrix();
     void ShowMatrix();
     void SaveApTxData(uint32_t newval);
     void ResetApTxData();
     void SaveEnbTxData(uint32_t newval);
     void ResetEnbTxData();
+    double GetAction (int state, char option1,int option2);
     double GetMinAction (int state, char option);
     float RandomIntUniform (int min, int max);
     float RandomRealUniform ();
